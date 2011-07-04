@@ -1,0 +1,16 @@
+name: PrivatChat
+main: bukkit.gwarband.privatchat.PrivatChat
+version: 0.2
+description:
+commands:
+   PChat:
+     description: xyz
+     aliases:
+     usage: /<command> <player>
+   ChatExit:
+     description: xyz
+     aliases:
+     usage: /<command>
+   BM:
+     description: send a global message
+     usage: /<command> <message>
