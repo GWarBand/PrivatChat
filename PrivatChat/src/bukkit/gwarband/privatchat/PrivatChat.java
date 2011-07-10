@@ -16,100 +16,78 @@ import java.util.logging.Logger;
 import com.nijikokun.bukkit.Permissions.Permissions;
 import com.nijiko.permissions.PermissionHandler;
 
-public class PrivatChat extends JavaPlugin
-{
+public class PrivatChat extends JavaPlugin {
+	
 	public static Logger log = Logger.getLogger("Minecraft");
 	private final PrivatChatWorker worker = new PrivatChatWorker(this);
 	public HashMap<String, Boolean> conservationopen = new HashMap<String, Boolean>();
 	public HashMap<String, Boolean> setchat = new HashMap<String, Boolean>();
 	public HashMap<String, Player> conservation = new HashMap<String, Player>();
-	int laenge = 0;
+	public HashMap<String, Integer> laenge = new HashMap<String, Integer>();
 	private final PrivatChatPlayerListener playerListener = new PrivatChatPlayerListener(this);
 	public static PermissionHandler permissionHandler;
 	public static boolean permFound;
 
 	
-	public void onDisable() 
-	{
+	public void onDisable() {
 		log.info("[PrivatChat] Plugin disable");
 	}
 
-	public void onEnable()
-	{	  
+	public void onEnable() {	  
 		setupPermissions();
+		worker.reload();
 		PluginManager pm = getServer().getPluginManager();
 		pm.registerEvent(Event.Type.PLAYER_JOIN, playerListener, Priority.Normal, this);
 		pm.registerEvent(Event.Type.PLAYER_QUIT, playerListener, Priority.Normal, this);
-		pm.registerEvent(Event.Type.PLAYER_CHAT, playerListener, Priority.Monitor, this);
+		pm.registerEvent(Event.Type.PLAYER_CHAT, playerListener, Priority.Lowest, this);
 		log.info("[PrivatChat] Plugin enable");
 	}
 	
-	public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) 
-	{
+	public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
 		String commandName = command.getName().toLowerCase();
 		Player player = (Player) sender;
 		try {
 			if(this.setchat.get(player.getName().toLowerCase()) == false) {
-				if(args.length >= 1 && commandName.equals("pchat"))
-				{
+				if(args.length >= 1 && commandName.equals("pchat")) {
 					if (args[0].equalsIgnoreCase("add")) {
-						if (!PrivatChat.perm(player, "privatchat.add")) {
-							player.sendMessage(ChatColor.RED + "You don't have Permissions to use this Command!");
-							return true;
-						}
-						this.laenge+=1;
-						Player player2 = this.getServer().getPlayer(args[1]);
-						this.conservation.put(player.getName().toLowerCase() + "[" + laenge + "]", player2);
-						player.sendMessage(ChatColor.GOLD + "You added " + player2.getDisplayName() + " to the chat!");
+						
+						return worker.addchat(player, args);
+						
 					} else if(args[0].equalsIgnoreCase("remove")) {
-						if (!PrivatChat.perm(player, "privatchat.remove")) {
-							player.sendMessage(ChatColor.RED + "You don't have Permissions to use this Command!");
-							return true;
-						}
-						Player player2 = this.getServer().getPlayer(args[1]);
-						for (int i=0; i<=this.laenge; i++) {
-							if (this.conservation.get(player.getName().toLowerCase() + "[" + i + "]").equals(player2))
-								this.conservation.remove(player.getName().toLowerCase() + "[" + i + "]");
-						}
-						this.laenge-=1;
-						player.sendMessage(ChatColor.GOLD + "You removed " + player2.getDisplayName() + " from the chat!");
-					} else if(args[0].equalsIgnoreCase("list")){
-						if (!PrivatChat.perm(player, "privatchat.list")) {
-							player.sendMessage(ChatColor.RED + "You don't have Permissions to use this Command!");
-							return true;
-						}
-						String list = "";
-						for (int i=0; i<=this.laenge; i++) {
-							list = " " + this.conservation.get(player.getName().toLowerCase() + "[" + i + "]").getDisplayName();
-						}
-						player.sendMessage(ChatColor.BLUE + "The following people are chatting with you:" + list);					
+						
+						return worker.removechat(player, args);
+						
+					} else if(args[0].equalsIgnoreCase("list")) {
+						
+						return worker.listchat(player);
+						
 					} else if(args[0].equalsIgnoreCase("set")) {
+						
 						return worker.setchat(player, args);
+						
 					} else if(args[0].equalsIgnoreCase("unset")) {
+						
 						return worker.unsetchat(player, args);
+						
 					} else if(commandName.equals("pchat")) {
-						this.laenge = args.length-1;
+						
 						return worker.chatopen(player, args);
 					}
-				}else if(commandName.equals("pchat")){
+					
+				} else if(commandName.equals("pchat")) {
 					player.sendMessage(ChatColor.RED + "/pchat <player player ...>");
 				}
 			
-				if(commandName.equals("chatexit"))
-				{
-					for (int i=0; i<=this.laenge; i++) {
-						this.conservation.get(player.getName().toLowerCase() + "[" + i + "]").sendMessage(ChatColor.GOLD + player.getDisplayName() + " closed the chat!");
-					}
+				if(commandName.equals("chatexit")) {
+					
 					return worker.chatclose(player);
 				}
 	  
-				if(args.length > 0 && commandName.equals("bm"))
-				{
-					if(commandName.equals("bm"))
-					{
+				if(args.length > 0 && commandName.equals("bm")) {
+					if(commandName.equals("bm")) {
 						return worker.chatmsg(player, args);
 					}
-				}else if(commandName.equals("bm")){
+				} else if(commandName.equals("bm")) {
 					player.sendMessage(ChatColor.RED + "/bm <msg>");
 				}
 			} else {
