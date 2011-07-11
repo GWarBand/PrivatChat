@@ -1,0 +1,16 @@
+name: PrivatChat
+main: bukkit.gwarband.privatchat.PrivatChat
+version: 0.3.1
+description: make your own chat with an other player or a groupchat
+commands:
+   PChat:
+     description: make your own chat with other people
+     aliases:
+     usage: /<command> <player>
+   ChatExit:
+     description: exit the chat
+     aliases:
+     usage: /<command>
+   BM:
+     description: send a global message
+     usage: /<command> <message>
